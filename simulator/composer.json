@@ -1,0 +1,20 @@
+{
+    "name": "schaulagain/water-tank-simulator",
+    "description": "Pretends to be the ESP32 so the app can be built before the hardware arrives.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "ext-pcntl": "*",
+        "php-mqtt/client": "^2.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": { "Simulator\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Simulator\\Tests\\": "tests/" }
+    }
+}

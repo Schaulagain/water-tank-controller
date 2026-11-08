@@ -1,0 +1,12 @@
+{
+    "name": "Water tanks",
+    "short_name": "Water",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f4f4f2",
+    "theme_color": "#2a78d6",
+    "icons": [
+        { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+        { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+    ]
+}
