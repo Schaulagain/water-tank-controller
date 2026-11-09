@@ -36,7 +36,7 @@ class Simulator extends Component
             $this->error = null;
         } catch (\Throwable $e) {
             report($e);
-            $this->error = 'Couldn\'t reach the broker. Is it running?';
+            $this->error = 'Couldn\'t reach the broker.';
         }
     }
 

@@ -12,6 +12,7 @@ x-app: &app
   environment:
     APP_URL: ${APP_URL:-http://localhost:8000}
     APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kathmandu}
+    BROADCAST_CONNECTION: reverb
     REVERB_APP_ID: ${REVERB_APP_ID:-water}
     REVERB_APP_KEY: ${REVERB_APP_KEY:-water-key}
     REVERB_APP_SECRET: ${REVERB_APP_SECRET:-change-me}

@@ -56,3 +56,43 @@ body {
     background: var(--page);
     padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Motion. Everything here switches off for people who ask for less motion. */
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes wave {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@keyframes halo {
+    0% { transform: scale(1); opacity: 0.45; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes rise {
+    0% { transform: translateY(0); opacity: 0; }
+    20% { opacity: 0.7; }
+    100% { transform: translateY(-90px); opacity: 0; }
+}
+
+.page-enter { animation: fade-up 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.wave { animation: wave 6s linear infinite; }
+.wave-fast { animation-duration: 2.2s; }
+.halo { animation: halo 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.bubble { animation: rise 2.4s ease-in infinite; }
+
+.press { transition: transform 0.15s ease, background-color 0.2s, color 0.2s, opacity 0.2s; }
+.press:active:not(:disabled) { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+    .page-enter, .wave, .halo, .bubble, .animate-spin { animation: none !important; }
+    .press:active:not(:disabled) { transform: none; }
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }

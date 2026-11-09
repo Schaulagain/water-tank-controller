@@ -60,19 +60,19 @@ class PagesTest extends TestCase
 
         $this->actingAs($this->owner())->get('/')
             ->assertOk()
-            ->assertSee('42%')
-            ->assertSee('81%')
-            ->assertSee('Pump is running')
-            ->assertSee('7 min')
-            ->assertSee('Roof tank low')
-            ->assertSee('18 min');
+            ->assertSeeText('42%')
+            ->assertSeeText('81%')
+            ->assertSeeText('Running')
+            ->assertSeeText('7 min')
+            ->assertSeeText('Roof tank low')
+            ->assertSeeText('18 min');
     }
 
     public function test_the_dashboard_says_when_the_controller_is_offline(): void
     {
         app(DeviceState::class)->update(['online' => false, 'last_seen' => now()->subMinutes(10)->getTimestamp()]);
 
-        $this->actingAs($this->owner())->get('/')->assertSee('Can\'t reach the controller', false);
+        $this->actingAs($this->owner())->get('/')->assertSeeText('Offline')->assertDontSeeText('Live');
     }
 
     public function test_the_buttons_send_commands_to_the_device(): void
@@ -87,6 +87,37 @@ class PagesTest extends TestCase
 
         Livewire::test(Dashboard::class)->call('command', 'self-destruct');
         $this->assertCount(2, $this->publisher->sent);
+    }
+
+    public function test_buttons_stay_locked_until_the_controller_confirms(): void
+    {
+        $this->actingAs($this->owner());
+        $state = app(DeviceState::class);
+        $state->update(['online' => true, 'last_seen' => now()->getTimestamp(), 'mode' => 'auto', 'pump' => false]);
+
+        $page = Livewire::test(Dashboard::class)
+            ->call('command', 'on')
+            ->assertSet('pending', 'on')
+            ->assertSeeHtml('aria-busy="true"')
+            ->call('command', 'off');
+
+        $this->assertCount(1, $this->publisher->sent, 'a second tap while waiting should be ignored');
+
+        $state->update(['mode' => 'manual', 'pump' => true, 'reason' => 'turned on by hand']);
+        $page->call('refreshState')->assertSet('pending', null)->assertSet('error', null);
+    }
+
+    public function test_gives_up_waiting_if_the_controller_never_answers(): void
+    {
+        $this->actingAs($this->owner());
+        app(DeviceState::class)->update(['online' => true, 'last_seen' => now()->getTimestamp(), 'mode' => 'auto']);
+
+        $page = Livewire::test(Dashboard::class)->call('command', 'off');
+
+        $this->travel(11)->seconds();
+        $page->call('refreshState')
+            ->assertSet('pending', null)
+            ->assertSee('No answer from the controller');
     }
 
     public function test_saving_settings_sends_them_to_the_device(): void

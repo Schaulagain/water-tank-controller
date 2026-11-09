@@ -1,74 +1,89 @@
 @php
-    $btn = 'rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-band';
-    $on = 'bg-band ring-1 ring-ink/30';
+    $tile = 'press group relative flex flex-col items-start gap-3 rounded-2xl p-3.5 text-left text-sm font-medium ring-1 transition disabled:cursor-not-allowed';
+    $chip = 'press group flex items-center gap-1.5 rounded-full bg-page px-3 py-2 text-xs font-medium text-muted hover:text-ink disabled:opacity-50';
+    $state = fn (bool $on) => $on ? 'bg-ink text-page ring-ink' : 'bg-card text-ink ring-line/70 hover:ring-ink/30 disabled:opacity-50';
 @endphp
 
-<div class="space-y-4">
-    <div>
-        <h1 class="text-xl font-semibold">Simulator</h1>
-        <p class="mt-1 text-sm text-muted">
-            A pretend controller stands in for the ESP32 until the hardware arrives. Change what's happening in the house here and watch the Tanks page react.
-            @if ($sim)
-                Water moves {{ $sim['speed'] }}× faster than real life.
-            @endif
-        </p>
-    </div>
+<div class="space-y-3">
+    <header class="flex items-center justify-between pb-1">
+        <h1 class="text-2xl font-semibold tracking-tight">Simulator</h1>
+        @if ($sim)
+            <span class="rounded-full bg-card px-3 py-1.5 text-xs font-medium tabular-nums text-muted ring-1 ring-line/70" title="Water moves this much faster than real life">{{ $sim['speed'] }}× speed</span>
+        @endif
+    </header>
 
     @if ($error)
-        <p class="rounded-xl border border-bad/50 bg-card p-4 text-sm" role="alert">{{ $error }}</p>
+        <p class="page-enter flex items-center gap-2 rounded-2xl bg-card px-4 py-3 text-sm ring-1 ring-bad/30" role="alert">
+            <x-icon name="alert" class="size-4 text-bad" />{{ $error }}
+        </p>
     @endif
 
     @if (! $sim)
-        <p class="rounded-xl border border-line bg-card p-4 text-sm text-muted">The simulator hasn't reported in yet. Is its container running?</p>
+        <div class="grid place-items-center gap-2 rounded-3xl border border-line/70 bg-card py-14 text-muted">
+            <x-spinner class="size-6" />
+            <p class="text-xs">Waiting for the simulator</p>
+        </div>
     @else
-        <section class="grid grid-cols-2 gap-3 rounded-xl border border-line bg-card p-4 text-sm">
-            <p class="col-span-2 text-xs text-muted">Actual water in the tanks (the sensors add a little noise)</p>
-            <p><span class="text-muted">Roof</span> <span class="ml-1 text-lg font-semibold tabular-nums">{{ round($sim['roof']) }}%</span></p>
-            <p><span class="text-muted">Underground</span> <span class="ml-1 text-lg font-semibold tabular-nums">{{ round($sim['underground']) }}%</span></p>
+        <section class="grid grid-cols-2 gap-3">
+            @foreach ([['Roof', 'home', 'roof', 'bg-roof'], ['Underground', 'underground', 'underground', 'bg-underground']] as [$label, $icon, $key, $color])
+                <div class="rounded-3xl border border-line/70 bg-card p-4">
+                    <p class="flex items-center gap-1.5 text-xs font-medium text-muted"><x-icon :name="$icon" class="size-3.5" />{{ $label }}</p>
+                    <p class="mt-1 text-2xl font-semibold tabular-nums">{{ round($sim[$key]) }}<span class="text-sm text-muted">%</span></p>
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-page">
+                        <div class="h-full rounded-full {{ $color }} transition-[width] duration-700" style="width: {{ $sim[$key] }}%"></div>
+                    </div>
+                </div>
+            @endforeach
         </section>
 
-        <section class="rounded-xl border border-line bg-card p-4">
-            <h2 class="font-semibold">Water use in the house</h2>
-            <div class="mt-3 flex flex-wrap gap-2">
-                @foreach (['none' => 'Nobody home', 'normal' => 'Normal', 'heavy' => 'Laundry day'] as $value => $label)
-                    <button wire:click="send('usage', '{{ $value }}')" @class([$btn, $on => $sim['usage'] === $value])>{{ $label }}</button>
+        <section class="rounded-3xl border border-line/70 bg-card p-4">
+            <p class="text-xs font-medium text-muted">Water use</p>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+                @foreach (['none' => ['Away', 'moon'], 'normal' => ['Normal', 'droplet'], 'heavy' => ['Heavy', 'waves']] as $value => [$label, $icon])
+                    <button wire:click="send('usage', '{{ $value }}')" wire:loading.attr="disabled" wire:target="send"
+                            aria-pressed="{{ $sim['usage'] === $value ? 'true' : 'false' }}" class="{{ $tile }} {{ $state($sim['usage'] === $value) }}">
+                        <x-icon :name="$icon" class="size-5 group-data-loading:hidden" />
+                        <x-spinner class="hidden size-5 group-data-loading:block" />
+                        {{ $label }}
+                    </button>
                 @endforeach
             </div>
         </section>
 
-        <section class="rounded-xl border border-line bg-card p-4">
-            <h2 class="font-semibold">Town water supply</h2>
-            <p class="mt-1 text-xs text-muted">When it's flowing, it slowly fills the underground tank.</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-                <button wire:click="send('supply', true)" @class([$btn, $on => $sim['supply']])>Flowing</button>
-                <button wire:click="send('supply', false)" @class([$btn, $on => ! $sim['supply']])>Not flowing</button>
+        <section class="rounded-3xl border border-line/70 bg-card p-4">
+            <p class="text-xs font-medium text-muted">Conditions</p>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+                <button wire:click="send('supply', {{ $sim['supply'] ? 'false' : 'true' }})" wire:loading.attr="disabled" wire:target="send"
+                        aria-pressed="{{ $sim['supply'] ? 'true' : 'false' }}" class="{{ $tile }} {{ $state($sim['supply']) }}">
+                    <x-icon name="pipe" class="size-5 group-data-loading:hidden" />
+                    <x-spinner class="hidden size-5 group-data-loading:block" />
+                    Town water
+                </button>
+                <button wire:click="send('power', {{ $sim['power'] ? 'false' : 'true' }})" wire:loading.attr="disabled" wire:target="send"
+                        aria-pressed="{{ $sim['power'] ? 'false' : 'true' }}" class="{{ $tile }} {{ $state(! $sim['power']) }}">
+                    <x-icon :name="$sim['power'] ? 'zap' : 'zap-off'" class="size-5 group-data-loading:hidden" />
+                    <x-spinner class="hidden size-5 group-data-loading:block" />
+                    {{ $sim['power'] ? 'Power on' : 'Power cut' }}
+                </button>
+                <button wire:click="send('roof_sensor_stuck', {{ $sim['roof_sensor_stuck'] ? 'false' : 'true' }})" wire:loading.attr="disabled" wire:target="send"
+                        aria-pressed="{{ $sim['roof_sensor_stuck'] ? 'true' : 'false' }}" class="{{ $tile }} {{ $state($sim['roof_sensor_stuck']) }}">
+                    <x-icon name="activity" class="size-5 group-data-loading:hidden" />
+                    <x-spinner class="hidden size-5 group-data-loading:block" />
+                    {{ $sim['roof_sensor_stuck'] ? 'Sensor jammed' : 'Sensor OK' }}
+                </button>
             </div>
         </section>
 
-        <section class="rounded-xl border border-line bg-card p-4">
-            <h2 class="font-semibold">Things going wrong</h2>
+        <section class="rounded-3xl border border-line/70 bg-card p-4">
+            <p class="text-xs font-medium text-muted">Jump to</p>
             <div class="mt-3 flex flex-wrap gap-2">
-                @if ($sim['power'])
-                    <button wire:click="send('power', false)" class="{{ $btn }}">Cut the power</button>
-                @else
-                    <button wire:click="send('power', true)" class="{{ $btn }} {{ $on }}">Bring the power back</button>
-                @endif
-                @if ($sim['roof_sensor_stuck'])
-                    <button wire:click="send('roof_sensor_stuck', false)" class="{{ $btn }} {{ $on }}">Fix the roof sensor</button>
-                @else
-                    <button wire:click="send('roof_sensor_stuck', true)" class="{{ $btn }}">Jam the roof sensor</button>
-                @endif
-                <button wire:click="send('underground_level', 8)" class="{{ $btn }}">Nearly empty the underground tank</button>
-            </div>
-            <p class="mt-2 text-xs text-muted">A jammed sensor keeps showing the same level, so the pump keeps running until the longest-run limit stops it.</p>
-        </section>
-
-        <section class="rounded-xl border border-line bg-card p-4">
-            <h2 class="font-semibold">Jump to a level</h2>
-            <div class="mt-3 flex flex-wrap gap-2">
-                <button wire:click="send('roof_level', 20)" class="{{ $btn }}">Roof to 20%</button>
-                <button wire:click="send('roof_level', 90)" class="{{ $btn }}">Roof to 90%</button>
-                <button wire:click="send('underground_level', 100)" class="{{ $btn }}">Fill underground</button>
+                @foreach ([['roof_level', 20, 'arrow-down', 'Roof 20%'], ['roof_level', 90, 'arrow-up', 'Roof 90%'], ['underground_level', 8, 'arrow-down', 'Underground 8%'], ['underground_level', 100, 'arrow-up', 'Underground full']] as [$action, $value, $icon, $label])
+                    <button wire:click="send('{{ $action }}', {{ $value }})" wire:loading.attr="disabled" wire:target="send" class="{{ $chip }}">
+                        <x-icon :name="$icon" class="size-3.5 group-data-loading:hidden" />
+                        <x-spinner class="hidden size-3.5 group-data-loading:block" />
+                        {{ $label }}
+                    </button>
+                @endforeach
             </div>
         </section>
     @endif

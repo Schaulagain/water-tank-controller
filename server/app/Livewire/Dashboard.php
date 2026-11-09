@@ -18,28 +18,60 @@ class Dashboard extends Component
 {
     public ?string $error = null;
 
+    /** The command we're waiting on the controller to confirm, if any. */
+    public ?string $pending = null;
+
+    public ?int $pendingAt = null;
+
+    private const CONFIRM_SECONDS = 10;
+
     /** Reverb pings this when the device reports; re-rendering is all it takes. */
     #[On('echo-private:device,DeviceUpdated')]
     public function refreshState(): void {}
 
     public function command(string $action): void
     {
-        if (! in_array($action, ['auto', 'on', 'off', 'reset'], true)) {
+        if ($this->pending || ! in_array($action, ['auto', 'on', 'off', 'reset'], true)) {
             return;
         }
 
         try {
             app(Device::class)->command($action);
             $this->error = null;
+            $this->pending = $action;
+            $this->pendingAt = now()->getTimestamp();
         } catch (\Throwable $e) {
             report($e);
-            $this->error = 'Couldn\'t reach the controller. Try again in a moment.';
+            $this->error = 'Couldn\'t send that. Try again.';
+        }
+    }
+
+    /** Clears the pending command once the controller's state shows it, or gives up after a while. */
+    private function settlePending(array $state): void
+    {
+        if (! $this->pending) {
+            return;
+        }
+
+        $confirmed = match ($this->pending) {
+            'auto' => $state['mode'] === 'auto',
+            'on' => $state['mode'] === 'manual' && ($state['pump'] || $state['reason'] !== 'turned off by hand'),
+            'off' => $state['mode'] === 'manual' && ! $state['pump'],
+            'reset' => $state['fault'] === null,
+        };
+
+        if ($confirmed) {
+            $this->pending = null;
+        } elseif (now()->getTimestamp() - $this->pendingAt >= self::CONFIRM_SECONDS) {
+            $this->pending = null;
+            $this->error = 'No answer from the controller.';
         }
     }
 
     public function render(DeviceState $device, Settings $settings)
     {
         $state = $device->get();
+        $this->settlePending($state);
 
         return view('livewire.dashboard', [
             'state' => $state,

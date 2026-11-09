@@ -51,10 +51,11 @@ class SettingsPage extends Component
 
         try {
             $settings->save($values);
-            $this->status = 'Saved and sent to the controller.';
+            $this->status = null;
+            $this->dispatch('settings-saved');
         } catch (\Throwable $e) {
             report($e);
-            $this->status = 'Saved. Couldn\'t reach the controller just now, so it\'ll get the new settings when the listener reconnects.';
+            $this->status = 'Saved. The controller gets it once it reconnects.';
         }
     }
 

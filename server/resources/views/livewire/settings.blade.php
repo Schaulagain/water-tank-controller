@@ -1,54 +1,68 @@
 @php
     $groups = [
-        'Roof tank' => [
-            'roof_on' => ['Start filling at', '%', 'The pump turns on when the roof tank drops to this level.'],
-            'roof_off' => ['Stop filling at', '%', 'The pump turns off when the roof tank reaches this level.'],
-        ],
-        'Underground tank' => [
-            'underground_block' => ['Too low to pump below', '%', 'The pump won\'t run while the underground tank is under this level.'],
-            'underground_resume' => ['Allowed again from', '%', 'After being too low, the pump waits until the tank is back up to here.'],
-        ],
-        'Safety' => [
-            'max_run_minutes' => ['Longest run', 'min', 'If the pump runs this long, it stops and waits for you to reset it. Set it a bit above a normal fill.'],
-            'power_wait_seconds' => ['Wait after power comes back', 'sec', 'Power often flickers before it settles, so the pump waits this long first.'],
-            'manual_timeout_minutes' => ['Hand control lasts', 'min', 'After switching the pump by hand, it goes back to auto after this long.'],
-        ],
+        ['Roof tank', 'home', [
+            'roof_on' => ['Start at', '%', 1],
+            'roof_off' => ['Stop at', '%', 1],
+        ]],
+        ['Underground tank', 'underground', [
+            'underground_block' => ['Too low below', '%', 1],
+            'underground_resume' => ['Allowed again at', '%', 1],
+        ]],
+        ['Safety', 'alert', [
+            'max_run_minutes' => ['Longest run', 'min', 5],
+            'power_wait_seconds' => ['Wait after power cut', 'sec', 30],
+            'manual_timeout_minutes' => ['Hand control lasts', 'min', 15],
+        ]],
     ];
 @endphp
 
 <div>
-    <h1 class="text-xl font-semibold">Settings</h1>
-    <p class="mt-1 text-sm text-muted">These are sent to the controller, which keeps working with them even if this page or the server is down.</p>
+    <h1 class="pb-4 text-2xl font-semibold tracking-tight">Settings</h1>
 
-    <form wire:submit="save" class="mt-5 space-y-4">
-        @foreach ($groups as $group => $fields)
-            <fieldset class="rounded-xl border border-line bg-card p-4">
+    <form wire:submit="save" class="space-y-3">
+        @foreach ($groups as [$group, $icon, $fields])
+            <fieldset class="rounded-3xl border border-line/70 bg-card px-4 py-2">
                 <legend class="sr-only">{{ $group }}</legend>
-                <h2 class="font-semibold">{{ $group }}</h2>
-                <div class="mt-3 space-y-4">
-                    @foreach ($fields as $field => [$label, $unit, $help])
-                        <label class="block">
-                            <span class="flex items-center justify-between gap-3">
-                                <span class="text-sm font-medium">{{ $label }}</span>
-                                <span class="flex items-center gap-1.5">
-                                    <input type="number" inputmode="numeric" wire:model="{{ $field }}"
-                                           class="w-20 rounded-lg border border-line bg-page px-2 py-1.5 text-right text-base tabular-nums outline-none focus:border-ink">
-                                    <span class="w-7 text-sm text-muted">{{ $unit }}</span>
-                                </span>
-                            </span>
-                            <span class="mt-1 block text-xs text-muted">{{ $help }}</span>
-                            @error($field) <span class="mt-1 block text-sm text-bad">{{ $message }}</span> @enderror
-                        </label>
-                    @endforeach
-                </div>
+                <p class="flex items-center gap-1.5 pt-2 pb-1 text-xs font-medium text-muted" aria-hidden="true">
+                    <x-icon :name="$icon" class="size-3.5" />{{ $group }}
+                </p>
+                @foreach ($fields as $field => [$label, $unit, $step])
+                    <div class="flex items-center justify-between gap-3 border-t border-line/60 py-2.5 first-of-type:border-t-0" x-data>
+                        <label for="{{ $field }}" class="text-sm">{{ $label }}</label>
+                        <div class="flex items-center gap-1">
+                            <button type="button" class="press grid size-8 place-items-center rounded-full bg-page text-muted hover:text-ink" aria-label="Less"
+                                    x-on:click="$refs.n.stepDown(); $refs.n.dispatchEvent(new Event('input'))">
+                                <x-icon name="minus" class="size-4" />
+                            </button>
+                            <input id="{{ $field }}" x-ref="n" type="number" inputmode="numeric" step="{{ $step }}" wire:model="{{ $field }}"
+                                   class="w-12 bg-transparent text-center text-base font-medium tabular-nums outline-none">
+                            <button type="button" class="press grid size-8 place-items-center rounded-full bg-page text-muted hover:text-ink" aria-label="More"
+                                    x-on:click="$refs.n.stepUp(); $refs.n.dispatchEvent(new Event('input'))">
+                                <x-icon name="plus" class="size-4" />
+                            </button>
+                            <span class="w-7 text-xs text-muted">{{ $unit }}</span>
+                        </div>
+                    </div>
+                    @error($field)
+                        <p class="page-enter -mt-1 flex items-center gap-1.5 pb-2.5 text-xs text-bad"><x-icon name="alert" class="size-3.5" />{{ $message }}</p>
+                    @enderror
+                @endforeach
             </fieldset>
         @endforeach
 
-        <div class="flex flex-wrap items-center gap-3">
-            <button class="rounded-lg bg-accent px-5 py-2.5 font-medium text-page disabled:opacity-60" wire:loading.attr="disabled">Save</button>
-            @if ($status)
-                <p class="text-sm text-muted" role="status">{{ $status }}</p>
-            @endif
+        <div class="flex items-center gap-3 pt-1"
+             x-data="{ done: false }"
+             x-on:settings-saved.window="done = true; setTimeout(() => done = false, 2200)">
+            <button class="press grid h-12 flex-1 place-items-center rounded-2xl bg-accent font-medium text-page disabled:opacity-70" wire:loading.attr="disabled" wire:target="save">
+                <span wire:loading.remove wire:target="save" class="flex items-center gap-2">
+                    <x-icon name="check" class="size-[18px]" x-show="done" x-transition.scale.origin.center />
+                    <span x-text="done ? 'Saved' : 'Save'">Save</span>
+                </span>
+                <x-spinner wire:loading wire:target="save" class="size-5" />
+            </button>
         </div>
+        @if ($status)
+            <p class="page-enter flex items-center gap-1.5 px-1 text-xs text-warn" role="status"><x-icon name="wifi-off" class="size-3.5" />{{ $status }}</p>
+        @endif
     </form>
 </div>
