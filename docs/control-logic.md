@@ -16,18 +16,18 @@ The logic lives on the controller. The server only shows what's happening and se
    | Power-up wait not over (`power_wait_seconds`) | off | power-up wait |
    | Dry-run guard on | off | dry-run guard on |
    | Roof sensor not reading | off | roof sensor not reading |
-   | Manual mode, on, roof at or above the stop level | off, and manual mode is cancelled | roof tank full |
+   | Manual mode, on, roof at or above the stop level | off, and back to auto mode | roof tank full |
    | Manual mode | as set | on / off in manual mode |
    | Auto mode, pump running, roof below the stop level (`roof_off`) | on | filling roof tank |
    | Auto mode, pump running, roof at the stop level | off | roof tank full |
    | Auto mode, pump off, roof at or below the start level (`roof_on`) | on | roof tank low |
    | Auto mode, pump off | off | roof tank has enough water |
 
-4. **Run limit.** If the pump has been on for the run limit (`max_run_minutes`), switch it off and trigger a safety stop (reported as `fault: "max_run"`). That covers a jammed sensor, a burst pipe or anything else that stops the roof tank filling.
+4. **Run limit.** If the pump has been on for the run limit (`max_run_minutes`), switch it off and trigger a safety stop (reported as `fault: "max_run"`). The tick that trips it reports the reason "hit the run limit", which is what the pump run's history shows, and later ticks report "safety stop, needs a reset". That covers a jammed sensor, a burst pipe or anything else that stops the roof tank filling.
 
 ## Power cuts
 
-When the power goes, the controller goes with it. On power-up it starts in auto mode with the pump off and holds a power-up wait (`power_wait_seconds`) before running, because the supply often flickers before it settles.
+When the power goes, the controller goes with it. On power-up it starts in auto mode with the pump off and holds a power-up wait (`power_wait_seconds`) before running, because the supply often flickers before it settles. The dry-run guard starts on, so if the underground tank is below the resume level the pump keeps waiting, just as it would have before the cut.
 
 A safety stop is the one thing that survives a restart. The ESP32 keeps it in flash, so cycling the power can't hide a problem.
 

@@ -84,7 +84,7 @@ class ControllerTest extends TestCase
         $this->assertTrue($c->dryBlocked);
     }
 
-    public function test_stops_and_latches_a_fault_after_running_too_long(): void
+    public function test_a_pump_run_past_the_run_limit_causes_a_safety_stop(): void
     {
         $c = $this->controller(new Config(maxRunMinutes: 30));
         $c->tick(self::START, $this->readings(roof: 20));
@@ -103,7 +103,7 @@ class ControllerTest extends TestCase
         $this->assertNull($c->fault);
     }
 
-    public function test_a_fault_survives_a_reboot(): void
+    public function test_a_safety_stop_survives_a_restart(): void
     {
         $c = $this->controller();
         $c->fault = 'max_run';
@@ -111,6 +111,17 @@ class ControllerTest extends TestCase
         $c->boot(self::START);
 
         $this->assertSame('max_run', $c->fault);
+    }
+
+    public function test_after_a_power_cut_the_dry_run_guard_waits_for_the_resume_level(): void
+    {
+        $c = $this->controller(new Config(undergroundBlock: 15, undergroundResume: 30, powerWaitSeconds: 0));
+        $c->boot(self::START);
+
+        $this->assertFalse($c->tick(self::START, $this->readings(roof: 10, underground: 20)));
+        $this->assertSame('dry-run guard on', $c->reason);
+
+        $this->assertTrue($c->tick(self::START + 60, $this->readings(roof: 10, underground: 30)));
     }
 
     public function test_waits_after_power_comes_back(): void
@@ -122,7 +133,7 @@ class ControllerTest extends TestCase
         $this->assertTrue($c->tick(self::START + 120, $this->readings(roof: 10)));
     }
 
-    public function test_manual_on_and_off_override_the_thresholds(): void
+    public function test_manual_mode_ignores_the_start_and_stop_levels(): void
     {
         $c = $this->controller();
 
@@ -145,6 +156,19 @@ class ControllerTest extends TestCase
         $this->assertFalse($c->tick(self::START + 120, $this->readings(roof: 90)));
     }
 
+    public function test_a_full_roof_tank_ends_manual_mode_so_auto_mode_refills_it_later(): void
+    {
+        $c = $this->controller();
+        $c->command('on', self::START);
+        $c->tick(self::START, $this->readings(roof: 80));
+
+        $c->tick(self::START + 60, $this->readings(roof: 95));
+        $this->assertSame('auto', $c->mode);
+
+        $this->assertTrue($c->tick(self::START + 600, $this->readings(roof: 20)));
+        $this->assertSame('roof tank low', $c->reason);
+    }
+
     public function test_manual_on_still_respects_the_underground_tank(): void
     {
         $c = $this->controller();
@@ -165,7 +189,7 @@ class ControllerTest extends TestCase
         $this->assertSame('auto', $c->mode);
     }
 
-    public function test_switching_back_to_auto_follows_the_thresholds_again(): void
+    public function test_switching_back_to_auto_mode_follows_the_levels_again(): void
     {
         $c = $this->controller();
         $c->command('off', self::START);

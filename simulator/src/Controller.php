@@ -36,7 +36,8 @@ final class Controller
 
     /**
      * Called when the controller powers up. Everything resets except a safety stop,
-     * which the ESP32 keeps in flash so a reboot can't clear it.
+     * which the ESP32 keeps in flash so a reboot can't clear it. The dry-run guard
+     * starts on, so the pump waits for the resume level, as it would have before the cut.
      */
     public function boot(int $now): void
     {
@@ -45,7 +46,7 @@ final class Controller
         $this->manualUntil = null;
         $this->pump = false;
         $this->pumpSince = null;
-        $this->dryBlocked = false;
+        $this->dryBlocked = true;
         $this->powerWaitUntil = $now + $this->config->powerWaitSeconds;
         $this->reason = 'power-up wait';
     }
@@ -93,7 +94,7 @@ final class Controller
     }
 
     /**
-     * Blocks the pump while the underground tank is low, and only lets it run
+     * Holds the pump off while the underground tank is low, and only lets it run
      * again once the level is back above a higher mark. The float switch near
      * the bottom of the tank blocks it too, in case the level sensor is wrong.
      */
@@ -131,7 +132,7 @@ final class Controller
 
         if ($this->mode === 'manual') {
             if ($this->manualPump && $roof >= $this->config->roofOff) {
-                $this->manualPump = false;
+                [$this->mode, $this->manualPump, $this->manualUntil] = ['auto', false, null];
 
                 return [false, 'roof tank full'];
             }

@@ -39,8 +39,18 @@ fwrite(STDOUT, "simulator connected to $host:$port, topic $prefix, speed x$speed
 $json = fn (array $data) => json_encode($data, JSON_UNESCAPED_SLASHES);
 $decode = fn (string $message) => is_array($data = json_decode($message, true)) ? $data : [];
 
-$client->subscribe("$prefix/config", function ($topic, $message) use ($controller, $decode) {
+$configured = false;
+
+$client->subscribe("$prefix/config", function ($topic, $message) use ($controller, $decode, &$configured) {
     $controller->config = Config::fromArray($decode($message));
+
+    // The saved settings arrive just after start-up. Boot again with them, so the
+    // power-up wait is the one from the settings page.
+    if (! $configured) {
+        $controller->boot(time());
+        $configured = true;
+    }
+
     fwrite(STDOUT, "config updated\n");
 }, 1);
 
