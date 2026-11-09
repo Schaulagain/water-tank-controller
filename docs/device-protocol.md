@@ -1,18 +1,18 @@
-# Device protocol
+# Controller protocol
 
 How the controller (the ESP32, or the simulator for now) and the server talk. Everything goes through the MQTT broker. Topics start with `MQTT_TOPIC`, which is `home/water` by default. Messages are JSON unless noted.
 
-## From the device
+## From the controller
 
 ### `home/water/status` (retained)
 
 Plain text, `online` or `offline`.
 
-The device publishes `online` when it connects. It also sets `offline` as its MQTT "last will", so the broker announces it straight away if the device drops off without saying goodbye.
+The controller publishes `online` when it connects. It also sets `offline` as its MQTT "last will", so the broker announces it straight away if the controller drops off without saying goodbye.
 
 ### `home/water/state`
 
-The device's full picture. Sent every 10 seconds, and straight away whenever the pump, mode, reason, fault or dry block changes.
+The controller's full picture. Sent every 10 seconds, and straight away whenever the pump, mode, reason, fault or dry-run guard changes.
 
 ```json
 {
@@ -40,14 +40,14 @@ The device's full picture. Sent every 10 seconds, and straight away whenever the
 | `mode` | `auto` or `manual` |
 | `manual_until` | Unix time manual mode ends by itself, or `null` |
 | `reason` | Short, human-readable reason for what the pump is doing. Shown on the page as is |
-| `fault` | `null`, or `max_run` after the pump ran too long. Stays until reset |
-| `dry_blocked` | `true` while the underground tank is too low to pump from |
-| `power_wait_until` | Unix time the post-power-up wait ends |
-| `time` | The device's clock (it should sync over NTP) |
+| `fault` | `null`, or `max_run` during a safety stop (the pump hit the run limit). Stays until reset |
+| `dry_blocked` | `true` while the dry-run guard is on |
+| `power_wait_until` | Unix time the power-up wait ends |
+| `time` | The controller's clock (it should sync over NTP) |
 
 The server works out pump runs and notifications by comparing each state message to the one before, so there's no separate event topic.
 
-## To the device
+## To the controller
 
 ### `home/water/command`
 
@@ -57,13 +57,13 @@ The server works out pump runs and notifications by comparing each state message
 
 | Action | What it does |
 | --- | --- |
-| `auto` | Back to following the thresholds |
+| `auto` | Back to auto mode |
 | `on` / `off` | Manual mode with the pump on or off, until `manual_timeout_minutes` passes |
-| `reset` | Clears a `max_run` fault |
+| `reset` | Clears a safety stop |
 
 ### `home/water/config` (retained)
 
-The thresholds and timers. Retained, so the device gets them every time it connects.
+The thresholds and timers. Retained, so the controller gets them every time it connects.
 
 ```json
 {
@@ -77,7 +77,7 @@ The thresholds and timers. Retained, so the device gets them every time it conne
 }
 ```
 
-The device keeps working with its last known config (or the defaults above) when the server is down.
+The controller keeps working with its last known config (or the defaults above) when the server is down.
 
 ## Simulator only
 

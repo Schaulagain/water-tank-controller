@@ -36,7 +36,7 @@ class CheckDeviceTest extends TestCase
         $this->artisan('device:check');
 
         $this->assertFalse(app(DeviceState::class)->get()['online']);
-        $this->assertSame('device went offline', PumpRun::sole()->stop_reason);
+        $this->assertSame('controller went offline', PumpRun::sole()->stop_reason);
         Http::assertNothingSent();
     }
 

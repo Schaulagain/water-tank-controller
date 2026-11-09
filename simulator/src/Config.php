@@ -3,8 +3,8 @@
 namespace Simulator;
 
 /**
- * Settings the device works to. The server sends these as a retained message
- * on the config topic, so the device picks them up again after a restart.
+ * Settings the controller works to. The server sends these as a retained message
+ * on the config topic, so the controller picks them up again after a restart.
  */
 final class Config
 {

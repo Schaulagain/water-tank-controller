@@ -5,8 +5,8 @@ namespace App\Device;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * The latest thing the device told us, kept in the cache so the page can
- * show it without asking the device.
+ * The latest thing the controller told us, kept in the cache so the page can
+ * show it without asking the controller.
  */
 class DeviceState
 {
@@ -44,7 +44,7 @@ class DeviceState
         return $state;
     }
 
-    /** The device counts as online if it said so and we've heard from it recently. */
+    /** The controller counts as online if it said so and we've heard from it recently. */
     public function isOnline(?array $state = null): bool
     {
         $state ??= $this->get();

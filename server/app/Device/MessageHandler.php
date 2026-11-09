@@ -8,7 +8,7 @@ use App\Models\Reading;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Handles every message the device sends. The device only reports its state;
+ * Handles every message the controller sends. The controller only reports its state;
  * pump runs and notifications come from comparing each report to the last.
  */
 class MessageHandler
@@ -105,8 +105,8 @@ class MessageHandler
         if ($after['fault'] === 'max_run' && $before['fault'] !== 'max_run') {
             $minutes = app(Settings::class)->all()['max_run_minutes'];
             $this->ntfy->send(
-                'Pump stopped for safety',
-                "It ran for {$minutes} minutes without filling the roof tank. Check the pipes and sensors, then reset it from the page.",
+                'Safety stop',
+                "The pump hit the {$minutes}-minute run limit without filling the roof tank. Check the pipes and sensors, then reset it from the page.",
                 'high',
                 ['warning'],
             );
@@ -114,8 +114,8 @@ class MessageHandler
 
         if ($after['dry_blocked'] && ! $before['dry_blocked']) {
             $this->ntfy->send(
-                'Underground tank is low',
-                'The pump will stay off until the underground tank fills up again.',
+                'Dry-run guard on',
+                'The underground tank is low, so the pump stays off until it fills back up.',
                 'default',
                 ['droplet'],
             );
@@ -131,11 +131,11 @@ class MessageHandler
         }
     }
 
-    /** The device went quiet, so whatever the pump was doing has ended. */
+    /** The controller went quiet, so whatever the pump was doing has ended. */
     public static function markOffline(DeviceState $state): void
     {
         $state->update(['online' => false]);
-        PumpRun::open()?->finish('device went offline');
+        PumpRun::open()?->finish('controller went offline');
     }
 
     private function broadcast(): void

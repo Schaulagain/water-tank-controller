@@ -11,7 +11,7 @@ class ControllerTest extends TestCase
 {
     private const START = 1_000_000;
 
-    /** A controller that has already finished its wait after power-up. */
+    /** A controller that has already finished its power-up wait. */
     private function controller(?Config $config = null): Controller
     {
         return new Controller($config ?? new Config, self::START - 3600);
@@ -51,7 +51,7 @@ class ControllerTest extends TestCase
 
         $this->assertFalse($c->tick(self::START, $this->readings(roof: 10, underground: 14)));
         $this->assertTrue($c->dryBlocked);
-        $this->assertSame('underground tank too low', $c->reason);
+        $this->assertSame('dry-run guard on', $c->reason);
     }
 
     public function test_waits_for_the_underground_tank_to_recover_before_running_again(): void
@@ -118,7 +118,7 @@ class ControllerTest extends TestCase
         $c = new Controller(new Config(powerWaitSeconds: 120), self::START);
 
         $this->assertFalse($c->tick(self::START + 119, $this->readings(roof: 10)));
-        $this->assertSame('waiting after power came back', $c->reason);
+        $this->assertSame('power-up wait', $c->reason);
         $this->assertTrue($c->tick(self::START + 120, $this->readings(roof: 10)));
     }
 
@@ -128,11 +128,11 @@ class ControllerTest extends TestCase
 
         $c->command('on', self::START);
         $this->assertTrue($c->tick(self::START, $this->readings(roof: 60)));
-        $this->assertSame('turned on by hand', $c->reason);
+        $this->assertSame('on in manual mode', $c->reason);
 
         $c->command('off', self::START);
         $this->assertFalse($c->tick(self::START, $this->readings(roof: 10)));
-        $this->assertSame('turned off by hand', $c->reason);
+        $this->assertSame('off in manual mode', $c->reason);
     }
 
     public function test_manual_on_still_stops_when_the_roof_tank_is_full(): void

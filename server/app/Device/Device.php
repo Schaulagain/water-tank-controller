@@ -3,7 +3,7 @@
 namespace App\Device;
 
 /**
- * Everything the app sends to the device. The topics are described in
+ * Everything the app sends to the controller. The topics are described in
  * docs/device-protocol.md.
  */
 class Device

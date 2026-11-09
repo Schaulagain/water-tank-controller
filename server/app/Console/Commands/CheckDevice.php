@@ -11,7 +11,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('device:check')]
-#[Description('Mark the device offline if it has gone quiet, and send a notification if it stays that way')]
+#[Description('Mark the controller offline if it has gone quiet, and send a notification if it stays that way')]
 class CheckDevice extends Command
 {
     public function handle(DeviceState $device, Ntfy $ntfy): int

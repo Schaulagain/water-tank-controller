@@ -35,8 +35,8 @@ final class Controller
     }
 
     /**
-     * Called when the device powers up. Everything resets except a fault,
-     * which the real board keeps in flash so a reboot can't clear it.
+     * Called when the controller powers up. Everything resets except a safety stop,
+     * which the ESP32 keeps in flash so a reboot can't clear it.
      */
     public function boot(int $now): void
     {
@@ -47,7 +47,7 @@ final class Controller
         $this->pumpSince = null;
         $this->dryBlocked = false;
         $this->powerWaitUntil = $now + $this->config->powerWaitSeconds;
-        $this->reason = 'waiting after power came back';
+        $this->reason = 'power-up wait';
     }
 
     public function command(string $action, int $now): void
@@ -77,7 +77,7 @@ final class Controller
 
         if ($want && $this->pump && $now - $this->pumpSince >= $this->config->maxRunMinutes * 60) {
             $this->fault = 'max_run';
-            [$want, $reason] = [false, 'ran too long, stopped for safety'];
+            [$want, $reason] = [false, 'hit the run limit'];
         }
 
         if ($want && ! $this->pump) {
@@ -114,15 +114,15 @@ final class Controller
         $roof = $readings->roof;
 
         if ($this->fault !== null) {
-            return [false, 'stopped for safety, needs a reset'];
+            return [false, 'safety stop, needs a reset'];
         }
 
         if ($now < $this->powerWaitUntil) {
-            return [false, 'waiting after power came back'];
+            return [false, 'power-up wait'];
         }
 
         if ($this->dryBlocked) {
-            return [false, 'underground tank too low'];
+            return [false, 'dry-run guard on'];
         }
 
         if ($roof === null) {
@@ -136,7 +136,7 @@ final class Controller
                 return [false, 'roof tank full'];
             }
 
-            return $this->manualPump ? [true, 'turned on by hand'] : [false, 'turned off by hand'];
+            return $this->manualPump ? [true, 'on in manual mode'] : [false, 'off in manual mode'];
         }
 
         if ($this->pump) {

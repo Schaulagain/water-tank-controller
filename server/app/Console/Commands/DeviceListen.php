@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 use PhpMqtt\Client\MqttClient;
 
 #[Signature('device:listen')]
-#[Description('Listen for messages from the device and keep the app up to date')]
+#[Description('Listen for messages from the controller and keep the app up to date')]
 class DeviceListen extends Command
 {
     public function handle(MessageHandler $handler, Settings $settings): int
@@ -25,7 +25,7 @@ class DeviceListen extends Command
         $client->connect();
         $this->info('Connected to '.config('device.mqtt.host').':'.config('device.mqtt.port'));
 
-        // Make sure the device has the current settings, even if they were
+        // Make sure the controller has the current settings, even if they were
         // changed while the broker was down.
         $settings->push();
 

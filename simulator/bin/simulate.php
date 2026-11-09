@@ -2,7 +2,7 @@
 
 /*
  * Pretends to be the ESP32. It talks to the broker exactly the way the real
- * board will (see docs/device-protocol.md), so the server can't tell the
+ * controller will (see docs/device-protocol.md), so the server can't tell the
  * difference.
  */
 
@@ -46,7 +46,7 @@ $client->subscribe("$prefix/config", function ($topic, $message) use ($controlle
 
 $client->subscribe("$prefix/command", function ($topic, $message) use ($controller, $world, $decode, &$forcePublish) {
     if (! $world->power) {
-        return; // the real board is off during a power cut, so it never sees the command
+        return; // the real controller is off during a power cut, so it never sees the command
     }
 
     $controller->command((string) ($decode($message)['action'] ?? ''), time());

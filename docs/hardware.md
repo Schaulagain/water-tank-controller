@@ -2,7 +2,7 @@
 
 This guide walks through the physical side of the project: what to buy, where each part goes, how it's wired, and how to test it safely. It's written for someone who has never built anything like this before. If you can follow a recipe and use a screwdriver, you can do most of it. The one part you shouldn't do yourself is the 230V mains wiring, and the guide says clearly where that starts.
 
-> **Status:** the software side works today with a simulator standing in for the board. The ESP32 firmware (in `firmware/`) is the next piece, and it will follow the rules in [control-logic.md](control-logic.md). This guide describes the hardware it's being written for.
+> **Status:** the software side works today with a simulator standing in for the controller. The ESP32 firmware (in `firmware/`) is the next piece, and it will follow the rules in [control-logic.md](control-logic.md). This guide describes the hardware it's being written for.
 
 ## Why I built this
 
@@ -40,7 +40,7 @@ There are three jobs, done by three things:
 | Decide | An ESP32 board | A small, cheap computer with WiFi. It reads the sensors every second and switches the pump on or off |
 | Show | A server (a laptop or an always-on home computer) | Stores the readings and shows them on a web page you open on your phone |
 
-The board can't switch a motor directly, so it switches a **relay**, which switches a **contactor**, which switches the pump. A contactor is a heavy-duty switch built for motors.
+The ESP32 can't switch a motor directly, so it switches a **relay**, which switches a **contactor**, which switches the pump. A contactor is a heavy-duty switch built for motors.
 
 ## Safety first
 
@@ -65,10 +65,10 @@ Prices are rough figures from Nepal in 2026 (Daraz, or electronics shops in New 
 | **Contactor**, 230V coil, rated 9A or more (AC-3) | The heavy-duty switch for the motor | 1,500 – 3,000 |
 | **Thermal overload relay** matched to your motor's current | Cuts the motor if it overheats. Strongly recommended | 1,500 – 2,500 |
 | **Changeover switch** (manual / auto) | Lets you go back to manual any time | 300 – 600 |
-| **5V power supply**: an HLK-PM01 module, or a 5V 2A phone charger | Powers the board | 300 – 500 |
+| **5V power supply**: an HLK-PM01 module, or a 5V 2A phone charger | Powers the ESP32 | 300 – 500 |
 | **IP65 junction box** with cable glands | Keeps the electronics dry | 400 – 800 |
-| **Shielded 4-core cable** (CAT6 works) | Connects the sensors to the board | 40 – 60 per metre |
-| **Resistors**: 1kΩ × 2, 2kΩ × 2 | Protect the board from the sensors' 5V signal (see below) | ~50 |
+| **Shielded 4-core cable** (CAT6 works) | Connects the sensors to the ESP32 | 40 – 60 per metre |
+| **Resistors**: 1kΩ × 2, 2kΩ × 2 | Protect the ESP32 from the sensors' 5V signal (see below) | ~50 |
 | Terminal blocks, jumper wires, small PCB or breadboard | Connections | ~200 |
 
 **Total:** roughly Rs 8,000 – 13,000, plus the electrician.
@@ -119,7 +119,7 @@ Each sensor has a small probe on a cable and a little circuit board.
 
 ### The float switch
 
-The float switch hangs in the underground tank, a little **above the pump's suction pipe** (the foot valve). When the water drops below it, it tells the board the tank is nearly empty, and the board won't run the pump. This is a backup for the underground sensor, in case it ever gives a wrong reading.
+The float switch hangs in the underground tank, a little **above the pump's suction pipe** (the foot valve). When the water drops below it, it tells the controller the tank is nearly empty, and the dry-run guard keeps the pump off. This is a backup for the underground sensor, in case it ever gives a wrong reading.
 
 ### The roof sensor cable
 
@@ -139,7 +139,7 @@ The roof sensor needs four wires running down to the box. Up to about 10 m, shie
 | Underground sensor **GND** | **GND** | |
 | Underground sensor **TRIG** | **GPIO 19** | |
 | Underground sensor **ECHO** | **GPIO 18**, through a voltage divider | See below |
-| Float switch, wire 1 | **GPIO 27** | The board turns on its internal pull-up |
+| Float switch, wire 1 | **GPIO 27** | The ESP32 turns on its internal pull-up |
 | Float switch, wire 2 | **GND** | |
 | Relay module **VCC** | **VIN** (5V) | |
 | Relay module **GND** | **GND** | |
@@ -147,9 +147,9 @@ The roof sensor needs four wires running down to the box. Up to about 10 m, shie
 | 5V power supply **+** | **VIN** | |
 | 5V power supply **−** | **GND** | |
 
-These pins were picked because they stay quiet while the board starts up. Some ESP32 pins flicker during boot, and a flicker on the relay pin would briefly start the pump.
+These pins were picked because they stay quiet while the ESP32 starts up. Some ESP32 pins flicker during boot, and a flicker on the relay pin would briefly start the pump.
 
-**The voltage divider, and why it matters.** The sensors send their ECHO signal at 5V, and the ESP32's pins only handle 3.3V. Without the divider, it may work for a while and then slowly damage the board. For each sensor:
+**The voltage divider, and why it matters.** The sensors send their ECHO signal at 5V, and the ESP32's pins only handle 3.3V. Without the divider, it may work for a while and then slowly damage the ESP32. For each sensor:
 
 ```
 sensor ECHO ──[ 1kΩ ]──┬──► ESP32 pin
@@ -175,16 +175,16 @@ Show this section to your electrician.
 
 The ESP32 joins your home WiFi and sends its readings to the MQTT broker (Mosquitto) running on your laptop or home server, on port **1883**.
 
-1. **Give the server a fixed address.** In your router's settings, find "DHCP reservation" (sometimes "static lease") and reserve an address for the laptop or home server. If the address changes, the board can't find it anymore.
+1. **Give the server a fixed address.** In your router's settings, find "DHCP reservation" (sometimes "static lease") and reserve an address for the laptop or home server. If the address changes, the controller can't find it anymore.
 2. **Leave port 1883 open** on that machine if it has a firewall turned on.
-3. **Keep the server running.** If the laptop sleeps, the pump still works, because the board makes the decisions. You just won't see anything on your phone until it's back. This is why I'm moving it to an always-on home server.
-4. **Reach it from outside** with [Tailscale](https://tailscale.com) on the server and your phone. Nothing needs to be opened to the internet. The board doesn't need Tailscale; it only talks to the server on your home network.
+3. **Keep the server running.** If the laptop sleeps, the pump still works, because the controller makes the decisions. You just won't see anything on your phone until it's back. This is why I'm moving it to an always-on home server.
+4. **Reach it from outside** with [Tailscale](https://tailscale.com) on the server and your phone. Nothing needs to be opened to the internet. The controller doesn't need Tailscale; it only talks to the server on your home network.
 
 The broker has no password at the moment, which is fine for testing at home. Adding one before the real board goes in is on the to-do list.
 
 ## Calibrating the tanks
 
-A sensor measures **distance**. To turn that into "how full", the board needs two numbers for each tank:
+A sensor measures **distance**. To turn that into "how full", the controller needs two numbers for each tank:
 
 - **Empty distance:** from the sensor down to the bottom of the tank (or the lowest water level you care about)
 - **Full distance:** from the sensor down to the water when the tank is full
@@ -205,12 +205,12 @@ Go slowly here. Each step only adds one new thing.
 
 1. **Board only.** Plug the ESP32 into the laptop with USB, load the firmware, and check that it joins WiFi and the page shows it as **Live**.
 2. **Sensors on the bench.** Connect both sensors and hold them over a bucket or the floor. Move them up and down and watch the levels change on the page.
-3. **Float switch.** Lift and drop it by hand. The page should show the underground tank as too low to pump while the float is down.
+3. **Float switch.** Lift and drop it by hand. The page should show "Dry-run guard on" while the float is down.
 4. **Relay, no pump.** Press **On** and **Off** on the page and listen for the relay clicking. Nothing is connected to it yet.
 5. **Install the sensors** in the tanks and check that the levels on the page match what you see with your own eyes.
 6. **Electrician connects the contactor and pump**, with the changeover switch on **Manual**.
 7. **First automatic fill, supervised.** Switch to **Auto** and watch a full fill from start to finish. Note how long it takes.
-8. **Set the longest run** on the Settings page to about **1.5 times** that fill time. If the pump ever runs longer, something is wrong (a leak, a jammed sensor), and it'll stop and tell you.
+8. **Set the run limit** on the Settings page to about **1.5 times** that fill time. If the pump ever runs longer, something is wrong (a leak, a jammed sensor), and it'll stop and tell you.
 
 ## When something goes wrong
 
@@ -219,8 +219,8 @@ Go slowly here. Each step only adds one new thing.
 | Page says **Offline** | Board has no power, or WiFi is weak, or the server's address changed | Check the 5V supply, check WiFi signal by the box, check the router reservation |
 | A level jumps around | Sensor is too close to the water, near the inlet pipe, or tilted | Move it away from the inlet, make sure it points straight down, keep 25 cm clearance |
 | A level shows **–** | The sensor isn't giving a reading | Check its four wires and the voltage divider |
-| Pump never starts | The underground tank reads as too low, or the float switch is stuck down | Check the underground level on the page, and free the float |
-| "Stopped for safety" | The pump ran longer than the longest run setting | Look for a leak or a jammed sensor, then press Reset. If fills are just slow, raise the setting |
+| Pump never starts | The underground tank is below the dry-run level, or the float switch is stuck down | Check the underground level on the page, and free the float |
+| "Safety stop" | The pump ran longer than the run limit | Look for a leak or a jammed sensor, then press Reset. If fills are just slow, raise the setting |
 | Relay clicks but the pump doesn't run | Changeover switch is on Manual, or a contactor or overload problem | Check the switch, then ask your electrician |
 
 ## Using this for your own house
@@ -240,7 +240,7 @@ Here's what was checked against a real source, and what wasn't:
 | Sensor blind zone (20–25 cm) and the ~10 m cable limit | General knowledge of the JSN-SR04T. Sellers' datasheets vary, so check the one for your sensor |
 | Contactor, overload relay and changeover wiring | Common practice for single-phase pump control. **Your electrician should confirm it against local rules** |
 | Prices | Rough estimates. They haven't been checked against shops, and prices change, so ask around |
-| How the board, server and phone talk to each other | This project's own design: see [device-protocol.md](device-protocol.md) and [control-logic.md](control-logic.md) |
+| How the controller, server and phone talk to each other | This project's own design: see [device-protocol.md](device-protocol.md) and [control-logic.md](control-logic.md) |
 
 ### Further reading
 

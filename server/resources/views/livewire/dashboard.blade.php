@@ -53,8 +53,8 @@
         <div class="page-enter flex items-center gap-3 rounded-3xl bg-bad/10 p-3 pl-4 ring-1 ring-bad/30" role="alert">
             <x-icon name="alert" class="size-5 text-bad" />
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold">Stopped for safety</p>
-                <p class="text-xs text-muted">Ran {{ $settings['max_run_minutes'] }} min without filling</p>
+                <p class="text-sm font-semibold">Safety stop</p>
+                <p class="text-xs text-muted">Hit the {{ $settings['max_run_minutes'] }} min run limit without filling</p>
             </div>
             <button wire:click="command('reset')" @disabled(! $online || $pending)
                     wire:loading.attr="disabled" wire:target="command"
@@ -94,7 +94,7 @@
             'water' => 'bg-underground/75',
             'surface' => 'text-underground/75',
             'active' => false,
-            'flag' => $state['dry_blocked'] ? 'Too low to pump' : null,
+            'flag' => $state['dry_blocked'] ? 'Dry-run guard on' : null,
             'marks' => [$settings['underground_block']],
         ])
     </div>

@@ -24,7 +24,7 @@ class MessageHandlerTest extends TestCase
         ]));
     }
 
-    public function test_keeps_the_latest_state_and_marks_the_device_online(): void
+    public function test_keeps_the_latest_state_and_marks_the_controller_online(): void
     {
         $this->report(['roof' => 63.5]);
 
@@ -64,7 +64,7 @@ class MessageHandlerTest extends TestCase
 
         app(MessageHandler::class)->handle('home/water/status', 'offline');
 
-        $this->assertSame('device went offline', PumpRun::sole()->stop_reason);
+        $this->assertSame('controller went offline', PumpRun::sole()->stop_reason);
         $this->assertFalse(app(DeviceState::class)->isOnline());
     }
 
@@ -73,12 +73,12 @@ class MessageHandlerTest extends TestCase
         config(['device.ntfy.topic' => 'my-tanks']);
         Http::fake();
 
-        $this->report(['fault' => 'max_run', 'reason' => 'ran too long, stopped for safety']);
+        $this->report(['fault' => 'max_run', 'reason' => 'hit the run limit']);
         $this->report(['fault' => 'max_run']);
 
         Http::assertSentCount(1);
         Http::assertSent(fn ($request) => $request->url() === 'https://ntfy.sh/my-tanks'
-            && $request->header('Title')[0] === 'Pump stopped for safety'
+            && $request->header('Title')[0] === 'Safety stop'
             && $request->header('Priority')[0] === 'high');
     }
 
@@ -90,7 +90,7 @@ class MessageHandlerTest extends TestCase
         $this->report([]);
         $this->report(['dry_blocked' => true]);
 
-        Http::assertSent(fn ($request) => $request->header('Title')[0] === 'Underground tank is low');
+        Http::assertSent(fn ($request) => $request->header('Title')[0] === 'Dry-run guard on');
     }
 
     public function test_ignores_messages_it_cant_read(): void

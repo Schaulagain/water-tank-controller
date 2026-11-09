@@ -75,7 +75,7 @@ class PagesTest extends TestCase
         $this->actingAs($this->owner())->get('/')->assertSeeText('Offline')->assertDontSeeText('Live');
     }
 
-    public function test_the_buttons_send_commands_to_the_device(): void
+    public function test_the_buttons_send_commands_to_the_controller(): void
     {
         $this->actingAs($this->owner());
 
@@ -103,7 +103,7 @@ class PagesTest extends TestCase
 
         $this->assertCount(1, $this->publisher->sent, 'a second tap while waiting should be ignored');
 
-        $state->update(['mode' => 'manual', 'pump' => true, 'reason' => 'turned on by hand']);
+        $state->update(['mode' => 'manual', 'pump' => true, 'reason' => 'on in manual mode']);
         $page->call('refreshState')->assertSet('pending', null)->assertSet('error', null);
     }
 
@@ -120,7 +120,7 @@ class PagesTest extends TestCase
             ->assertSee('No answer from the controller');
     }
 
-    public function test_saving_settings_sends_them_to_the_device(): void
+    public function test_saving_settings_sends_them_to_the_controller(): void
     {
         $this->actingAs($this->owner());
 

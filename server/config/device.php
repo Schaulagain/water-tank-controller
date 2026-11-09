@@ -2,7 +2,7 @@
 
 return [
 
-    // The MQTT broker the device (or the simulator) talks to.
+    // The MQTT broker the controller (or the simulator) talks to.
     'mqtt' => [
         'host' => env('MQTT_HOST', 'localhost'),
         'port' => (int) env('MQTT_PORT', 1883),
@@ -13,7 +13,7 @@ return [
     'reading_interval_seconds' => 30,
     'keep_readings_days' => 30,
 
-    // The device reports every 10 seconds. After this long without hearing
+    // The controller reports every 10 seconds. After this long without hearing
     // from it, the page shows it as offline.
     'offline_after_seconds' => 60,
 

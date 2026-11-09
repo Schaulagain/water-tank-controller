@@ -6,35 +6,35 @@ The logic lives on the controller. The server only shows what's happening and se
 
 ## Each tick
 
-1. **Manual timeout.** In manual mode past `manual_until`, go back to auto.
-2. **Dry block.** Block the pump if the underground level is below `underground_block`, the underground sensor isn't reading, or the float switch has dropped. Once blocked, it stays blocked until the level is back to `underground_resume`.
+1. **Manual mode timeout.** In manual mode past `manual_until`, go back to auto mode.
+2. **Dry-run guard.** Turn the guard on if the underground level is below the dry-run level (`underground_block`), the underground sensor isn't reading, or the float switch has dropped. Once on, it stays on until the level is back to the resume level (`underground_resume`).
 3. **Decide**, taking the first rule that applies:
 
    | Situation | Pump | Reason shown |
    | --- | --- | --- |
-   | A fault is set | off | stopped for safety, needs a reset |
-   | Less than `power_wait_seconds` since power-up | off | waiting after power came back |
-   | Dry blocked | off | underground tank too low |
+   | Safety stop | off | safety stop, needs a reset |
+   | Power-up wait not over (`power_wait_seconds`) | off | power-up wait |
+   | Dry-run guard on | off | dry-run guard on |
    | Roof sensor not reading | off | roof sensor not reading |
-   | Manual, on, roof at or above `roof_off` | off, and manual on is cancelled | roof tank full |
-   | Manual | as set | turned on / off by hand |
-   | Auto, pump running, roof below `roof_off` | on | filling roof tank |
-   | Auto, pump running, roof at `roof_off` | off | roof tank full |
-   | Auto, pump off, roof at or below `roof_on` | on | roof tank low |
-   | Auto, pump off | off | roof tank has enough water |
+   | Manual mode, on, roof at or above the stop level | off, and manual mode is cancelled | roof tank full |
+   | Manual mode | as set | on / off in manual mode |
+   | Auto mode, pump running, roof below the stop level (`roof_off`) | on | filling roof tank |
+   | Auto mode, pump running, roof at the stop level | off | roof tank full |
+   | Auto mode, pump off, roof at or below the start level (`roof_on`) | on | roof tank low |
+   | Auto mode, pump off | off | roof tank has enough water |
 
-4. **Longest run.** If the pump has been on for `max_run_minutes`, switch it off and set the `max_run` fault. That covers a jammed sensor, a burst pipe or anything else that stops the roof tank filling.
+4. **Run limit.** If the pump has been on for the run limit (`max_run_minutes`), switch it off and trigger a safety stop (reported as `fault: "max_run"`). That covers a jammed sensor, a burst pipe or anything else that stops the roof tank filling.
 
 ## Power cuts
 
-When the power goes, the board goes with it. On power-up it starts in auto with the pump off and waits `power_wait_seconds` before running, because the supply often flickers before it settles.
+When the power goes, the controller goes with it. On power-up it starts in auto mode with the pump off and holds a power-up wait (`power_wait_seconds`) before running, because the supply often flickers before it settles.
 
-A fault is the one thing that survives a restart. The real board keeps it in flash, so cycling the power can't hide a problem.
+A safety stop is the one thing that survives a restart. The ESP32 keeps it in flash, so cycling the power can't hide a problem.
 
 ## Commands
 
 - `on` / `off`: manual mode, until `manual_timeout_minutes` passes or `auto` is sent.
-- `auto`: back to the thresholds.
-- `reset`: clears the fault.
+- `auto`: back to auto mode.
+- `reset`: clears a safety stop.
 
-The safety rules (fault, power-up wait, dry block, roof sensor) apply in manual mode too.
+The safety rules (safety stop, power-up wait, dry-run guard, roof sensor) apply in manual mode too.

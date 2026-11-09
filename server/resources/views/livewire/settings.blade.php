@@ -1,17 +1,17 @@
 @php
     $groups = [
         ['Roof tank', 'home', [
-            'roof_on' => ['Start at', '%', 1],
-            'roof_off' => ['Stop at', '%', 1],
+            'roof_on' => ['Start level', '%', 1],
+            'roof_off' => ['Stop level', '%', 1],
         ]],
         ['Underground tank', 'underground', [
-            'underground_block' => ['Too low below', '%', 1],
-            'underground_resume' => ['Allowed again at', '%', 1],
+            'underground_block' => ['Dry-run level', '%', 1],
+            'underground_resume' => ['Resume level', '%', 1],
         ]],
         ['Safety', 'alert', [
-            'max_run_minutes' => ['Longest run', 'min', 5],
-            'power_wait_seconds' => ['Wait after power cut', 'sec', 30],
-            'manual_timeout_minutes' => ['Hand control lasts', 'min', 15],
+            'max_run_minutes' => ['Run limit', 'min', 5],
+            'power_wait_seconds' => ['Power-up wait', 'sec', 30],
+            'manual_timeout_minutes' => ['Manual mode lasts', 'min', 15],
         ]],
     ];
 @endphp

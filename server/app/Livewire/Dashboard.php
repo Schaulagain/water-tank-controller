@@ -25,7 +25,7 @@ class Dashboard extends Component
 
     private const CONFIRM_SECONDS = 10;
 
-    /** Reverb pings this when the device reports; re-rendering is all it takes. */
+    /** Reverb pings this when the controller reports; re-rendering is all it takes. */
     #[On('echo-private:device,DeviceUpdated')]
     public function refreshState(): void {}
 
@@ -55,7 +55,7 @@ class Dashboard extends Component
 
         $confirmed = match ($this->pending) {
             'auto' => $state['mode'] === 'auto',
-            'on' => $state['mode'] === 'manual' && ($state['pump'] || $state['reason'] !== 'turned off by hand'),
+            'on' => $state['mode'] === 'manual' && ($state['pump'] || $state['reason'] !== 'off in manual mode'),
             'off' => $state['mode'] === 'manual' && ! $state['pump'],
             'reset' => $state['fault'] === null,
         };
