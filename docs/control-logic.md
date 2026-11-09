@@ -27,7 +27,7 @@ The logic lives on the controller. The server only shows what's happening and se
 
 ## Power cuts
 
-When the power goes, the controller goes with it. On power-up it starts in auto mode with the pump off and holds a power-up wait (`power_wait_seconds`) before running, because the supply often flickers before it settles. The dry-run guard starts on, so if the underground tank is below the resume level the pump keeps waiting, just as it would have before the cut.
+When the power goes, the controller goes with it. On power-up it starts in auto mode with the pump off and holds a power-up wait (`power_wait_seconds`) before running, because the supply often flickers before it settles. The dry-run guard starts on, so the pump only runs once the underground tank is at or above the resume level.
 
 A safety stop is the one thing that survives a restart. The ESP32 keeps it in flash, so cycling the power can't hide a problem.
 

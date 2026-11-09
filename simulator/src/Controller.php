@@ -37,7 +37,7 @@ final class Controller
     /**
      * Called when the controller powers up. Everything resets except a safety stop,
      * which the ESP32 keeps in flash so a reboot can't clear it. The dry-run guard
-     * starts on, so the pump waits for the resume level, as it would have before the cut.
+     * starts on, so the pump waits until the underground tank is at the resume level.
      */
     public function boot(int $now): void
     {

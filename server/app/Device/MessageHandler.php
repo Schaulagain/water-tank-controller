@@ -115,7 +115,7 @@ class MessageHandler
         if ($after['dry_blocked'] && ! $before['dry_blocked']) {
             $this->ntfy->send(
                 'Dry-run guard on',
-                'The underground tank is low or its sensor isn\'t reading, so the pump stays off until it fills back up.',
+                'The underground tank is low or its sensor isn\'t reading, so the pump stays off until the tank is back at the resume level.',
                 'default',
                 ['droplet'],
             );
