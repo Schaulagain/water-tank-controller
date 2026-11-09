@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Device\Command;
 use App\Device\Device;
 use App\Device\DeviceState;
 use App\Device\Settings;
@@ -31,12 +32,14 @@ class Dashboard extends Component
 
     public function command(string $action): void
     {
-        if ($this->pending || ! in_array($action, ['auto', 'on', 'off', 'reset'], true)) {
+        $command = Command::tryFrom($action);
+
+        if ($this->pending || ! $command) {
             return;
         }
 
         try {
-            app(Device::class)->command($action);
+            app(Device::class)->command($command);
             $this->error = null;
             $this->pending = $action;
             $this->pendingAt = now()->getTimestamp();
@@ -53,14 +56,7 @@ class Dashboard extends Component
             return;
         }
 
-        $confirmed = match ($this->pending) {
-            'auto' => $state['mode'] === 'auto',
-            'on' => $state['mode'] === 'manual' && ($state['pump'] || $state['reason'] !== 'off in manual mode'),
-            'off' => $state['mode'] === 'manual' && ! $state['pump'],
-            'reset' => $state['fault'] === null,
-        };
-
-        if ($confirmed) {
+        if (Command::from($this->pending)->isConfirmedBy($state)) {
             $this->pending = null;
         } elseif (now()->getTimestamp() - $this->pendingAt >= self::CONFIRM_SECONDS) {
             $this->pending = null;

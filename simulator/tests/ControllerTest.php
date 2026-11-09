@@ -177,6 +177,19 @@ class ControllerTest extends TestCase
         $this->assertFalse($c->tick(self::START, $this->readings(roof: 50, underground: 5)));
     }
 
+    public function test_reports_the_manual_setting_even_while_a_safety_rule_holds_the_pump(): void
+    {
+        $c = $this->controller();
+        $c->command('on', self::START);
+        $c->tick(self::START, $this->readings(roof: 50, underground: 5));
+
+        $this->assertFalse($c->toArray()['pump']);
+        $this->assertTrue($c->toArray()['manual_pump']);
+
+        $c->command('auto', self::START);
+        $this->assertNull($c->toArray()['manual_pump']);
+    }
+
     public function test_manual_mode_goes_back_to_auto_after_the_timeout(): void
     {
         $c = $this->controller(new Config(manualTimeoutMinutes: 120));

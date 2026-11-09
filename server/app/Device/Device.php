@@ -15,10 +15,9 @@ class Device
         return config('device.mqtt.topic').'/'.$name;
     }
 
-    /** @param 'auto'|'on'|'off'|'reset' $action */
-    public function command(string $action): void
+    public function command(Command $command): void
     {
-        $this->send('command', ['action' => $action]);
+        $this->send('command', ['action' => $command->value]);
     }
 
     public function sendConfig(array $config): void

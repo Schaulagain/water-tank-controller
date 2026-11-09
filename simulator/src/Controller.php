@@ -153,6 +153,7 @@ final class Controller
             'pump' => $this->pump,
             'pump_since' => $this->pumpSince,
             'mode' => $this->mode,
+            'manual_pump' => $this->mode === 'manual' ? $this->manualPump : null,
             'manual_until' => $this->manualUntil,
             'reason' => $this->reason,
             'fault' => $this->fault,

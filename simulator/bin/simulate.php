@@ -112,7 +112,7 @@ $client->registerLoopEventHandler(function (MqttClient $client) use (
         ];
 
         // Send straight away when something meaningful changes, otherwise every few seconds.
-        $signature = $json(array_intersect_key($state, array_flip(['pump', 'mode', 'reason', 'fault', 'dry_blocked'])));
+        $signature = $json(array_intersect_key($state, array_flip(['pump', 'mode', 'manual_pump', 'reason', 'fault', 'dry_blocked'])));
 
         if ($forcePublish || $signature !== $lastSignature || $now - $lastState >= $heartbeat) {
             $client->publish("$prefix/state", $json($state), 0, false);

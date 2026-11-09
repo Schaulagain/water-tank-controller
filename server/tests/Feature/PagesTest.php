@@ -103,8 +103,24 @@ class PagesTest extends TestCase
 
         $this->assertCount(1, $this->publisher->sent, 'a second tap while waiting should be ignored');
 
-        $state->update(['mode' => 'manual', 'pump' => true, 'reason' => 'on in manual mode']);
+        $state->update(['mode' => 'manual', 'manual_pump' => true, 'pump' => true, 'reason' => 'on in manual mode']);
         $page->call('refreshState')->assertSet('pending', null)->assertSet('error', null);
+    }
+
+    public function test_switching_on_while_the_dry_run_guard_is_on_waits_for_the_controller(): void
+    {
+        $this->actingAs($this->owner());
+        $state = app(DeviceState::class);
+        $state->update([
+            'online' => true, 'last_seen' => now()->getTimestamp(), 'mode' => 'manual',
+            'manual_pump' => false, 'pump' => false, 'dry_blocked' => true, 'reason' => 'dry-run guard on',
+        ]);
+
+        $page = Livewire::test(Dashboard::class)->call('command', 'on')->call('refreshState');
+        $page->assertSet('pending', 'on');
+
+        $state->update(['manual_pump' => true]);
+        $page->call('refreshState')->assertSet('pending', null);
     }
 
     public function test_gives_up_waiting_if_the_controller_never_answers(): void

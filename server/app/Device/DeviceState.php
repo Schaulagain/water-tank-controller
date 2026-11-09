@@ -24,6 +24,7 @@ class DeviceState
         'pump' => false,
         'pump_since' => null,
         'mode' => 'auto',
+        'manual_pump' => null,
         'manual_until' => null,
         'reason' => null,
         'fault' => null,

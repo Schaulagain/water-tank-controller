@@ -12,7 +12,7 @@ The controller publishes `online` when it connects. It also sets `offline` as it
 
 ### `home/water/state`
 
-The controller's full picture. Sent every 10 seconds, and straight away whenever the pump, mode, reason, fault or dry-run guard changes.
+The controller's full picture. Sent every 10 seconds, and straight away whenever the pump, mode, manual setting, reason, fault or dry-run guard changes.
 
 ```json
 {
@@ -22,6 +22,7 @@ The controller's full picture. Sent every 10 seconds, and straight away whenever
   "pump": true,
   "pump_since": 1793193600,
   "mode": "auto",
+  "manual_pump": null,
   "manual_until": null,
   "reason": "filling roof tank",
   "fault": null,
@@ -38,6 +39,7 @@ The controller's full picture. Sent every 10 seconds, and straight away whenever
 | `pump` | Whether the pump is on |
 | `pump_since` | Unix time the pump started, or `null` |
 | `mode` | `auto` or `manual` |
+| `manual_pump` | In manual mode, whether the pump was switched on (`true`) or off (`false`). `null` in auto mode. The pump itself can still be off if a safety rule holds it |
 | `manual_until` | Unix time manual mode ends by itself, or `null` |
 | `reason` | Short, human-readable reason for what the pump is doing. Shown on the page as is |
 | `fault` | `null`, or `max_run` during a safety stop (the pump hit the run limit). Stays until reset |
