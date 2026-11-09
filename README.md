@@ -2,11 +2,17 @@
 
 [![Tests](https://github.com/Schaulagain/water-tank-controller/actions/workflows/tests.yml/badge.svg)](https://github.com/Schaulagain/water-tank-controller/actions/workflows/tests.yml)
 
-A small system to keep an eye on the water tanks at home and run the water pump from my phone.
+A small system that fills the roof tank by itself, keeps the pump from running dry, and shows both water tanks on your phone.
 
-The pump fills the roof tank from the underground tank. Right now it's switched on and off by hand, which means forgetting it and overflowing the roof tank, or forgetting to fill it at all.
+## Why I built this
 
-The hardware isn't here yet, so for now a simulator stands in for it. The simulator talks to the server exactly the way the real board will, so swapping it out later shouldn't change anything else.
+A lot of houses in Nepal, mine included, pump water from an underground tank up to a tank on the roof, and the pump is switched on and off by hand. That means the roof tank overflows when someone forgets to switch it off, runs empty when nobody remembers to fill it, and the pump can burn out if it runs while the underground tank is empty.
+
+This project fixes that with a cheap ESP32 board next to the pump, two sensors and a small web app. It's built so anyone with the same setup can make their own.
+
+**New here?** Start with the [hardware guide](docs/hardware.md). It's written for beginners and covers why it's built this way, what to buy, where everything goes and how to test it safely.
+
+The hardware isn't installed at my place yet, so for now a simulator stands in for it. The simulator talks to the server exactly the way the real board will, so you can try the whole app today with nothing but Docker.
 
 ## What it does
 
@@ -38,7 +44,7 @@ The device decides when the pump runs. The server stores what it reports, shows 
 | --- | --- |
 | [`server/`](server) | Laravel 13 app: Livewire pages, the MQTT listener, Reverb for live updates |
 | [`simulator/`](simulator) | The pretend controller and the control logic, with tests |
-| [`docs/`](docs) | [The control logic](docs/control-logic.md) and [the MQTT messages](docs/device-protocol.md) |
+| [`docs/`](docs) | [The hardware guide](docs/hardware.md), [the control logic](docs/control-logic.md) and [the MQTT messages](docs/device-protocol.md) |
 | `firmware/` | The ESP32 code, once the hardware arrives |
 
 ## Running it
@@ -85,17 +91,13 @@ cd server && composer install && php artisan test
 
 The simulator tests cover the control logic: thresholds, the dry-run block and float switch, the longest-run fault, the wait after a power cut and manual mode. The server tests cover message handling, pump run tracking, notifications, the offline check and the pages.
 
-## Hardware (planned)
+## Hardware
 
-| Part | Job |
-| --- | --- |
-| ESP32 board | Reads the sensors, runs the control logic, switches the contactor |
-| JSN-SR04T ultrasonic sensor, one per tank | Measures how full each tank is |
-| Float switch near the bottom of the underground tank | Backup against running dry if the ultrasonic sensor gets it wrong |
-| Contactor | Switches the pump's 230V supply |
-| 5V power supply | Powers the ESP32 |
+An ESP32 board, two JSN-SR04T waterproof ultrasonic sensors, a float switch, a relay and a contactor, for roughly Rs 8,000 – 13,000 plus an electrician. The [hardware guide](docs/hardware.md) has the full parts list, wiring, calibration and a step-by-step way to test it safely.
 
-The pump is a single-phase motor of about 0.5 to 1 HP. An electrician will wire the contactor to the mains. I'm doing the low-voltage side and the code.
+## Contributing
+
+Questions, ideas and photos of your own build are all welcome. Open an issue, and if you're fixing something, a pull request.
 
 ## License
 
