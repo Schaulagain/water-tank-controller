@@ -11,43 +11,32 @@ use Livewire\Component;
 #[Title('Settings')]
 class SettingsPage extends Component
 {
-    public int $roof_on;
-
-    public int $roof_off;
-
-    public int $underground_block;
-
-    public int $underground_resume;
-
-    public int $max_run_minutes;
-
-    public int $power_wait_seconds;
-
-    public int $manual_timeout_minutes;
+    /** @var array<string, int> One value per key in Settings::DEFAULTS. */
+    public array $values = [];
 
     public ?string $status = null;
 
     public function mount(Settings $settings): void
     {
-        $this->fill($settings->all());
+        $this->values = $settings->all();
     }
 
     protected function rules(): array
     {
-        return Settings::rules();
+        return Settings::rules('values.');
     }
 
     protected function messages(): array
     {
         return [
-            'roof_off.gt' => 'This needs to be higher than the level that turns the pump on.',
-            'underground_resume.gt' => 'This needs to be higher than the dry-run level.',
+            'values.roof_off.gt' => 'This needs to be higher than the level that turns the pump on.',
+            'values.underground_resume.gt' => 'This needs to be higher than the dry-run level.',
         ];
     }
 
     public function save(Settings $settings): void
     {
-        $values = $this->validate();
+        $values = $this->validate()['values'];
 
         try {
             $settings->save($values);

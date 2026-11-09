@@ -34,7 +34,7 @@
                                     x-on:click="$refs.n.stepDown(); $refs.n.dispatchEvent(new Event('input'))">
                                 <x-icon name="minus" class="size-4" />
                             </button>
-                            <input id="{{ $field }}" x-ref="n" type="number" inputmode="numeric" step="{{ $step }}" wire:model="{{ $field }}"
+                            <input id="{{ $field }}" x-ref="n" type="number" inputmode="numeric" step="{{ $step }}" wire:model="values.{{ $field }}"
                                    class="w-12 bg-transparent text-center text-base font-medium tabular-nums outline-none">
                             <button type="button" class="press grid size-8 place-items-center rounded-full bg-page text-muted hover:text-ink" aria-label="More"
                                     x-on:click="$refs.n.stepUp(); $refs.n.dispatchEvent(new Event('input'))">
@@ -43,7 +43,7 @@
                             <span class="w-7 text-xs text-muted">{{ $unit }}</span>
                         </div>
                     </div>
-                    @error($field)
+                    @error('values.'.$field)
                         <p class="page-enter -mt-1 flex items-center gap-1.5 pb-2.5 text-xs text-bad"><x-icon name="alert" class="size-3.5" />{{ $message }}</p>
                     @enderror
                 @endforeach

@@ -12,7 +12,7 @@ class DeviceState
 {
     private const KEY = 'device.state';
 
-    private const SIM_KEY = 'device.sim';
+    private const SIMULATOR_KEY = 'device.sim';
 
     public const EMPTY = [
         'online' => false,
@@ -55,13 +55,14 @@ class DeviceState
             && $state['last_seen'] >= now()->getTimestamp() - config('device.offline_after_seconds');
     }
 
-    public function sim(): array
+    /** What the simulator says about its pretend tanks, for the simulator page. */
+    public function simulator(): array
     {
-        return Cache::get(self::SIM_KEY, []);
+        return Cache::get(self::SIMULATOR_KEY, []);
     }
 
-    public function updateSim(array $values): void
+    public function updateSimulator(array $values): void
     {
-        Cache::forever(self::SIM_KEY, $values);
+        Cache::forever(self::SIMULATOR_KEY, $values);
     }
 }

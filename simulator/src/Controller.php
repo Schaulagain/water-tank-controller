@@ -41,9 +41,7 @@ final class Controller
      */
     public function boot(int $now): void
     {
-        $this->mode = 'auto';
-        $this->manualPump = false;
-        $this->manualUntil = null;
+        $this->endManualMode();
         $this->pump = false;
         $this->pumpSince = null;
         $this->dryBlocked = true;
@@ -54,7 +52,7 @@ final class Controller
     public function command(string $action, int $now): void
     {
         match ($action) {
-            'auto' => [$this->mode, $this->manualUntil] = ['auto', null],
+            'auto' => $this->endManualMode(),
             'on', 'off' => [$this->mode, $this->manualPump, $this->manualUntil] = [
                 'manual',
                 $action === 'on',
@@ -68,8 +66,7 @@ final class Controller
     public function tick(int $now, Readings $readings): bool
     {
         if ($this->mode === 'manual' && $now >= $this->manualUntil) {
-            $this->mode = 'auto';
-            $this->manualUntil = null;
+            $this->endManualMode();
         }
 
         $this->updateDryBlock($readings);
@@ -91,6 +88,11 @@ final class Controller
         $this->reason = $reason;
 
         return $want;
+    }
+
+    private function endManualMode(): void
+    {
+        [$this->mode, $this->manualPump, $this->manualUntil] = ['auto', false, null];
     }
 
     /**
@@ -132,7 +134,7 @@ final class Controller
 
         if ($this->mode === 'manual') {
             if ($this->manualPump && $roof >= $this->config->roofOff) {
-                [$this->mode, $this->manualPump, $this->manualUntil] = ['auto', false, null];
+                $this->endManualMode();
 
                 return [false, 'roof tank full'];
             }

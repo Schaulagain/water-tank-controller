@@ -43,16 +43,19 @@ class Settings
         $this->device->sendConfig($this->all());
     }
 
-    public static function rules(): array
+    /** @param  string  $prefix  Put in front of every key, for forms that keep the values under one name. */
+    public static function rules(string $prefix = ''): array
     {
-        return [
+        $rules = [
             'roof_on' => ['required', 'integer', 'between:5,90'],
-            'roof_off' => ['required', 'integer', 'max:100', 'gt:roof_on'],
+            'roof_off' => ['required', 'integer', 'max:100', "gt:{$prefix}roof_on"],
             'underground_block' => ['required', 'integer', 'between:0,90'],
-            'underground_resume' => ['required', 'integer', 'max:100', 'gt:underground_block'],
+            'underground_resume' => ['required', 'integer', 'max:100', "gt:{$prefix}underground_block"],
             'max_run_minutes' => ['required', 'integer', 'between:1,240'],
             'power_wait_seconds' => ['required', 'integer', 'between:0,900'],
             'manual_timeout_minutes' => ['required', 'integer', 'between:5,720'],
         ];
+
+        return collect($rules)->mapWithKeys(fn ($rule, $key) => [$prefix.$key => $rule])->all();
     }
 }

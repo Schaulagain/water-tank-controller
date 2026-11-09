@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Device\DeviceState;
 use App\Device\MessageHandler;
 use App\Device\Ntfy;
-use App\Events\DeviceUpdated;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,7 +13,7 @@ use Illuminate\Console\Command;
 #[Description('Mark the controller offline if it has gone quiet, and send a notification if it stays that way')]
 class CheckDevice extends Command
 {
-    public function handle(DeviceState $device, Ntfy $ntfy): int
+    public function handle(DeviceState $device, MessageHandler $handler, Ntfy $ntfy): int
     {
         $state = $device->get();
 
@@ -25,8 +24,7 @@ class CheckDevice extends Command
         $quietFor = now()->getTimestamp() - $state['last_seen'];
 
         if ($state['online'] && ! $device->isOnline($state)) {
-            MessageHandler::markOffline($device);
-            rescue(fn () => broadcast(new DeviceUpdated), report: false);
+            $handler->controllerWentOffline();
             $state = $device->get();
         }
 

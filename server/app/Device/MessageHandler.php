@@ -19,7 +19,7 @@ class MessageHandler
     {
         match ($topic) {
             Device::topic('status') => $this->status($message),
-            Device::topic('state') => $this->report($message),
+            Device::topic('state') => $this->state($message),
             Device::topic('sim/state') => $this->simulator($message),
             default => null,
         };
@@ -29,14 +29,13 @@ class MessageHandler
     {
         if ($message === 'online') {
             $this->state->update(['online' => true, 'last_seen' => now()->getTimestamp()]);
+            $this->broadcast();
         } else {
-            self::markOffline($this->state);
+            $this->controllerWentOffline();
         }
-
-        $this->broadcast();
     }
 
-    private function report(string $message): void
+    private function state(string $message): void
     {
         $data = json_decode($message, true);
 
@@ -64,7 +63,7 @@ class MessageHandler
         $data = json_decode($message, true);
 
         if (is_array($data)) {
-            $this->state->updateSim($data);
+            $this->state->updateSimulator($data);
             $this->broadcast();
         }
     }
@@ -132,12 +131,14 @@ class MessageHandler
     }
 
     /** The controller went quiet, so whatever the pump was doing has ended. */
-    public static function markOffline(DeviceState $state): void
+    public function controllerWentOffline(): void
     {
-        $state->update(['online' => false]);
+        $this->state->update(['online' => false]);
         PumpRun::open()?->finish('controller went offline');
+        $this->broadcast();
     }
 
+    /** Tells open pages to refresh. A broadcast that fails shouldn't stop the controller's message being handled. */
     private function broadcast(): void
     {
         try {

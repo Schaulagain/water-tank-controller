@@ -107,6 +107,6 @@ class MessageHandlerTest extends TestCase
     {
         app(MessageHandler::class)->handle('home/water/sim/state', '{"roof": 40, "usage": "heavy"}');
 
-        $this->assertSame('heavy', app(DeviceState::class)->sim()['usage']);
+        $this->assertSame('heavy', app(DeviceState::class)->simulator()['usage']);
     }
 }

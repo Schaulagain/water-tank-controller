@@ -141,7 +141,7 @@ class PagesTest extends TestCase
         $this->actingAs($this->owner());
 
         Livewire::test(SettingsPage::class)
-            ->set('roof_on', 30)
+            ->set('values.roof_on', 30)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -150,7 +150,7 @@ class PagesTest extends TestCase
         $this->assertTrue($sent['retain']);
         $this->assertSame(30, $sent['message']['roof_on']);
 
-        Livewire::test(SettingsPage::class)->assertSet('roof_on', 30);
+        Livewire::test(SettingsPage::class)->assertSet('values.roof_on', 30);
     }
 
     public function test_settings_must_make_sense(): void
@@ -158,9 +158,9 @@ class PagesTest extends TestCase
         $this->actingAs($this->owner());
 
         Livewire::test(SettingsPage::class)
-            ->set('roof_on', 80)->set('roof_off', 70)
+            ->set('values.roof_on', 80)->set('values.roof_off', 70)
             ->call('save')
-            ->assertHasErrors('roof_off');
+            ->assertHasErrors('values.roof_off');
 
         $this->assertSame([], $this->publisher->sent);
     }

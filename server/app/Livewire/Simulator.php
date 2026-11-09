@@ -42,6 +42,6 @@ class Simulator extends Component
 
     public function render(DeviceState $device)
     {
-        return view('livewire.simulator', ['sim' => $device->sim()]);
+        return view('livewire.simulator', ['sim' => $device->simulator()]);
     }
 }
