@@ -95,6 +95,12 @@ The simulator tests cover the control logic: thresholds, the dry-run block and f
 
 An ESP32 board, two JSN-SR04T waterproof ultrasonic sensors, a float switch, a relay and a contactor, for roughly Rs 8,000 – 13,000 plus an electrician. The [hardware guide](docs/hardware.md) has the full parts list, wiring, calibration and a step-by-step way to test it safely.
 
+## How this was built
+
+I'm being upfront about this: the code and docs here were written mostly by **Claude** (Anthropic's AI model, in Claude Code). I came up with the idea, made the design calls in a long back-and-forth, tested it and gave feedback, and the agent did most of the writing. I think that's a normal way to build software now, and I'm happy to say so.
+
+The hardware guide lists [where its information comes from](docs/hardware.md#where-this-information-comes-from), including what was checked against a source and what wasn't.
+
 ## Contributing
 
 Questions, ideas and photos of your own build are all welcome. Open an issue, and if you're fixing something, a pull request.

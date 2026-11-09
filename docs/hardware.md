@@ -226,3 +226,27 @@ Go slowly here. Each step only adds one new thing.
 ## Using this for your own house
 
 Everything here is MIT licensed, so you're free to copy it, change it and use it. Tank sizes, thresholds and timings are all settings, so it should fit most houses with a roof tank and an underground tank. If you build one, I'd love to hear how it went. Open an issue on the repo with photos or questions.
+
+## Where this information comes from
+
+To be upfront about it: this guide was written by **Claude**, Anthropic's AI model, working in Claude Code. I asked the questions, made the decisions and gave feedback along the way. Most of what's here comes from Claude's general knowledge of the ESP32, ultrasonic sensors and pump wiring, so please treat it as a well-researched starting point and double-check anything that matters for your house.
+
+Here's what was checked against a real source, and what wasn't:
+
+| Topic | Where it comes from |
+| --- | --- |
+| Which ESP32 pins are safe to use (stay quiet at boot, not strapping pins) | Checked against the [ESP32 pinout reference](https://randomnerdtutorials.com/esp32-pinout-reference-gpios/) by Random Nerd Tutorials |
+| The voltage divider for the 5V ECHO signal | Standard 1k / 2k divider maths (5V × 2/3 ≈ 3.3V) |
+| Sensor blind zone (20–25 cm) and the ~10 m cable limit | General knowledge of the JSN-SR04T. Sellers' datasheets vary, so check the one for your sensor |
+| Contactor, overload relay and changeover wiring | Common practice for single-phase pump control. **Your electrician should confirm it against local rules** |
+| Prices | Rough estimates. They haven't been checked against shops, and prices change, so ask around |
+| How the board, server and phone talk to each other | This project's own design: see [device-protocol.md](device-protocol.md) and [control-logic.md](control-logic.md) |
+
+### Further reading
+
+These are the official docs for the main pieces, if you want to go deeper:
+
+- [ESP32 datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf) (Espressif)
+- [MQTT](https://mqtt.org) and the [Mosquitto broker docs](https://mosquitto.org/documentation/)
+- [Tailscale docs](https://tailscale.com/kb)
+- [ntfy docs](https://docs.ntfy.sh), for phone notifications
