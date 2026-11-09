@@ -20,7 +20,7 @@ return [
     // ...and after this long, a notification goes out.
     'notify_offline_after_seconds' => 300,
 
-    // Shows the simulator page. Turn off once the real board is in.
+    // Shows the simulator page. Turn off once the real controller is in.
     'simulator' => (bool) env('SIMULATOR_ENABLED', true),
 
     'ntfy' => [

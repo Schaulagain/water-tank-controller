@@ -5,7 +5,7 @@ namespace App\Device;
 use App\Models\Setting;
 
 /**
- * The thresholds and timers the controller works to. They're stored here and
+ * The levels and timers the controller works to. They're stored here and
  * pushed to the controller whenever they change.
  */
 class Settings

@@ -68,7 +68,7 @@ class MessageHandlerTest extends TestCase
         $this->assertFalse(app(DeviceState::class)->isOnline());
     }
 
-    public function test_sends_a_notification_once_when_the_pump_is_stopped_for_safety(): void
+    public function test_sends_a_notification_once_on_a_safety_stop(): void
     {
         config(['device.ntfy.topic' => 'my-tanks']);
         Http::fake();

@@ -41,7 +41,7 @@ class SettingsPage extends Component
     {
         return [
             'roof_off.gt' => 'This needs to be higher than the level that turns the pump on.',
-            'underground_resume.gt' => 'This needs to be higher than the level that blocks the pump.',
+            'underground_resume.gt' => 'This needs to be higher than the dry-run level.',
         ];
     }
 

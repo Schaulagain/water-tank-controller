@@ -22,7 +22,7 @@ class CheckDeviceTest extends TestCase
         PumpRun::create(['started_at' => now(), 'mode' => 'auto', 'start_reason' => 'roof tank low']);
     }
 
-    public function test_leaves_a_device_that_reported_recently_alone(): void
+    public function test_leaves_a_controller_that_reported_recently_alone(): void
     {
         $this->travel(30)->seconds();
         $this->artisan('device:check');
@@ -30,7 +30,7 @@ class CheckDeviceTest extends TestCase
         $this->assertTrue(app(DeviceState::class)->get()['online']);
     }
 
-    public function test_marks_a_quiet_device_offline_after_a_minute(): void
+    public function test_marks_a_quiet_controller_offline_after_a_minute(): void
     {
         $this->travel(61)->seconds();
         $this->artisan('device:check');
