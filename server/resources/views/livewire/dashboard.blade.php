@@ -4,7 +4,7 @@
     $manual = $state['mode'] === 'manual';
     $running = $online && $state['pump'];
     $waitingUntil = $state['power_wait_until'] && $state['power_wait_until'] > $now ? $at($state['power_wait_until']) : null;
-    $active = $manual ? (($state['manual_pump'] ?? $state['pump']) ? 'on' : 'off') : 'auto';
+    $active = $manual ? ($state['manual_pump'] ? 'on' : 'off') : 'auto';
     $modes = ['auto' => ['Auto', 'auto'], 'on' => ['On', 'play'], 'off' => ['Off', 'stop']];
     $shown = $pending && $pending !== 'reset' ? $pending : $active;
     $shownIndex = array_search($shown, array_keys($modes));
